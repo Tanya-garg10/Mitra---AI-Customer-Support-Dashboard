@@ -1,0 +1,255 @@
+:root{
+  --bg:#f5f6f2;
+  --panel:#fff;
+  --panel2:#f7f8f5;
+  --line:#e7eae3;
+  --text:#28342f;
+  --muted:#7b8780;
+  --purple:#517765;
+  --purple2:#35634e;
+  --green:#42836a;
+  --orange:#b58346;
+  --red:#c16e69;
+  --blue:#6689a0;
+  font-family:"DM Sans",sans-serif;
+  color:var(--text);
+  background:var(--bg);
+  font-synthesis:none;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body{background:var(--bg);color:var(--text)}
+button,input,textarea{font-family:inherit}
+button:focus-visible,input:focus-visible,textarea:focus-visible,label:focus-within{outline:3px solid #79a58c66;outline-offset:2px}
+.scroll{scrollbar-color:#cbd2c8 transparent;scrollbar-width:thin}
+.scroll::-webkit-scrollbar-thumb{background:#cbd2c8}
+.shell{min-height:100vh;background:var(--bg);color:var(--text)}
+.sidebar{position:sticky;top:0;height:100vh;width:250px;padding:28px 16px 17px;background:#eef1eb;border-right:1px solid #e5e9e1}
+.brand{gap:12px;padding:0 9px 27px}
+.brand-icon{width:40px;height:40px;border-radius:14px;background:#dce9de;color:#477760;box-shadow:none}
+.brand b{font:800 22px "Manrope",sans-serif;letter-spacing:-1.1px;color:#293a32}
+.brand b span{color:#6c9b78}
+.brand small{font-size:8px;letter-spacing:1.35px;color:#7b887e}
+.workspace{border:1px solid #e3e8df;background:#f9faf7;border-radius:13px;margin-bottom:27px}
+.workspace-mark{background:#e4eee4;color:#477760;border-radius:11px}
+.workspace b,.profile b{color:#34443b}
+.workspace small,.profile small{color:#859087}
+.live-dot{background:#bdc6bb}
+.live-dot.on{background:#5b9b73;box-shadow:0 0 0 4px #5b9b7318}
+.nav-label{color:#9aa49b;font-size:9px;letter-spacing:1.55px}
+.nav{color:#69776e;transition:background .18s ease,color .18s ease}
+.nav:hover,.nav.selected{background:#e1eae0;color:#3f6d53}
+.nav.selected{box-shadow:inset 2px 0 #5b8b68}
+.nav-count,.tag-new{background:#deeadf;color:#537b5c}
+.tag-new{background:#e4ede7;color:#537b6a}
+.guard-card{border:1px solid #dce7dc;background:#e7efe6;color:#5b8769}
+.guard-card b{color:#3f654a}
+.guard-card p{color:#718778}
+.profile{border-top-color:#e0e6df}
+.profile-avatar{background:#dce8de;color:#466d50}
+.profile>svg{color:#8e9a90}
+.main{background:var(--bg)}
+.topbar{position:sticky;top:0;z-index:4;height:66px;border-bottom:1px solid #e8ebe5;padding:0 36px;background:#f8f9f6ed;backdrop-filter:blur(16px)}
+.crumb{color:#9aa39c;font-size:11px}
+.crumb b{color:#344239}
+.top-actions{gap:15px}
+.connection{color:#758279;border-color:#e4e8e1;background:#fff;font-size:10px}
+.connection i{background:#bbc3ba}
+.connection.good{color:#557a62;border-color:#dce8dc;background:#f3f8f2}
+.connection.good i{background:#68a17a}
+.top-icon{color:#748279}
+.top-icon:hover{color:#3f7355}
+.content{max-width:1570px;padding:35px 38px 22px}
+.hero,.section-heading{margin-bottom:28px}
+.eyebrow{color:#668772;font-size:9px;letter-spacing:1.35px}
+.eyebrow>span{background:#74a17c;box-shadow:0 0 0 4px #74a17c1c}
+.hero h1,.section-heading h1{font:700 33px "Manrope",sans-serif;letter-spacing:-1.45px;color:#29362f}
+.hero h1 em{color:#5f886b}
+.hero p,.section-heading p{color:#7e8981;font-size:12px}
+.primary,.outline,.subtle{border-radius:10px;padding:10px 15px;font-size:11px;transition:background .18s,border-color .18s,box-shadow .18s,transform .18s}
+.primary{background:#416f55;color:#fff;box-shadow:0 3px 8px #375e4918}
+.primary:hover{background:#345f48;filter:none;transform:translateY(-1px);box-shadow:0 7px 16px #375e4920}
+.primary:disabled{opacity:.55}
+.outline{background:#fff;border-color:#e1e7df;color:#56655b}
+.outline:hover{background:#f3f7f1;border-color:#a8c0ab;color:#3f6d53}
+.subtle{color:#52795e}
+.subtle:hover{background:#edf3ec;color:#375d43}
+.metrics{gap:13px}
+.metric{border:1px solid #e7ebe4;background:#fff;border-radius:15px;padding:17px 18px;box-shadow:0 2px 8px #34452f05}
+.metric-top{color:#77827a}
+.metric-icon{border-radius:10px}
+.metric-icon.violet{background:#eaf0e9;color:#5d8465}
+.metric-icon.orange{background:#f6efe4;color:#ad824b}
+.metric-icon.red{background:#f6eae7;color:#b86e68}
+.metric-icon.green{background:#e8f1eb;color:#4e8867}
+.metric>b{font:700 28px "Manrope",sans-serif;color:#2e3b33}
+.metric>small{color:#909990}
+.metric-line{height:2px;width:35px}
+.metric-line.violet{background:#78957a}.metric-line.orange{background:#c4a06d}.metric-line.red{background:#cf8a81}.metric-line.green{background:#6a9a75}
+.grid-main{gap:15px}
+.panel{border:1px solid #e6eae3;background:#fff;border-radius:16px;box-shadow:0 2px 9px #34452f05}
+.panel-head{padding:19px 20px 15px}
+.panel h2{font:700 14px "Manrope",sans-serif;color:#334138}
+.panel-head p{color:#8b958d}
+.muted-icon{color:#75917a}
+.feed{padding:0 13px 10px}
+.session-row{border-top-color:#edf0eb;color:#344239}
+.session-row:hover{background:#f6f8f4}
+.session-avatar{background:#eaf0e9;color:#67856b}
+.session-info>span{color:#758078}
+.session-info small{color:#98a198}
+.pill{border-radius:20px;padding:4px 8px}
+.pill.red{background:#faeeec;border-color:#f0dfdc;color:#a65f59}
+.pill.amber{background:#f8f1e5;border-color:#eee2cc;color:#9b7541}
+.pill.green{background:#edf5ee;border-color:#deebdf;color:#4d7c57}
+.pill.blue{background:#edf2f4;border-color:#dfe9ec;color:#557689}
+.overview-side>.outline{width:calc(100% - 40px);margin:12px 20px 0}
+.workflow>span{color:#52775b;background:#edf3eb;border-radius:10px}
+.workflow p{color:#838f85}
+.signal b{color:#344239}
+.signal small{color:#8b958d}
+.signal-dot{background:#78a07c}
+.signal-dot.red{background:#c48177}.signal-dot.orange{background:#c4a06d}.signal-dot.violet{background:#78957a}
+.privacy{color:#548365}
+.privacy b{color:#435f49}
+.privacy p{color:#748778}
+.footer{color:#99a198}
+.footer .live-dot.on{background:#68a17a}
+.chat-layout{gap:16px}
+.chat-panel{min-height:620px}
+.chat-title{border-bottom-color:#edf0eb}
+.bot-icon{background:#e8f0e8;color:#51745a;border-radius:13px}
+.chat-title h2{font:700 14px "Manrope",sans-serif;color:#344239}
+.chat-title p{color:#89948b}
+.powered{color:#65806a;border-color:#e1e9df;background:#f7f9f5}
+.chat-messages{padding:24px 22px}
+.bubble-avatar{background:#e7efe7;color:#587b5c}
+.user-avatar{background:#e5eee6;color:#4a7053}
+.bubble{border-color:#e7ebe4;background:#f7f8f5;border-radius:5px 15px 15px 15px;padding:13px 15px}
+.user-bubble{background:#e8f0e8;border-color:#dfe9df;border-radius:15px 5px 15px 15px}
+.bubble-label{color:#5a7b60}
+.bubble p{color:#46534a;font-size:11px;line-height:1.75}
+.source-list{border-top-color:#e3e9e1}
+.source-list b{color:#517b5c}
+.source-list span{color:#78857b}
+.typing{color:#839087}
+.typing span{background:#7b9c7a}
+.composer{border-top-color:#edf0eb}
+.composer textarea{background:#fbfcfa;border-color:#e4e9e1;border-radius:12px;color:#354239}
+.composer textarea::placeholder{color:#a0a9a0}
+.composer textarea:focus{border-color:#88a98b;box-shadow:0 0 0 3px #88a98b20}
+.composer-foot>span{color:#849087}
+.chat-aside{padding:20px;border-radius:16px}
+.chat-aside h3{font:700 14px "Manrope",sans-serif;color:#36433a}
+.aside-copy{color:#89948b}
+.context-score{padding:15px;background:#f3f6f1;border-color:#e7ece4;border-radius:12px}
+.context-score>span{color:#79857b}
+.context-score>b{font:700 28px "Manrope",sans-serif;color:#3a4a3e}
+.context-score b small{color:#929d93}
+.score-track,.severity-bar{background:#e4e9e1}
+.score-track span,.severity-bar span{background:linear-gradient(90deg,#78a17b,#c18c70)}
+.label-value{border-bottom-color:#edf0eb}
+.label-value>span:first-child{color:#869188}
+.label-value>b{color:#47544a}
+.entity-box>b{color:#526056}
+.entity-box span{color:#59785d;background:#eef3eb;border-color:#e1e9dd}
+.mini-guard{color:#63816a}
+.mini-guard span{color:#829185}
+.aside-empty{color:#72916f}
+.aside-empty b{color:#4c5e4e}
+.aside-empty span{color:#849087}
+.count-chip{border-color:#e2e9df;background:#f0f4ed;color:#5b795e}
+.search{border-color:#e5e9e2;color:#89948a;background:#fff;border-radius:10px}
+.search:focus-within{border-color:#8cae90;box-shadow:0 0 0 3px #8cae901b}
+.search input{color:#344239}
+.search input::placeholder{color:#a0a9a0}
+.analysis-panel{padding-bottom:18px}
+.severity{background:#f4f6f2;border-color:#e6ebe3;border-radius:12px}
+.severity>div:first-child span{color:#77837a}
+.severity>div:first-child b{font:700 26px "Manrope",sans-serif;color:#36463a}
+.severity b small{color:#8d988f}
+.summary{border-top-color:#edf0eb}
+.summary h3{color:#455349}
+.summary h3 svg{color:#6d8b6c}
+.summary p,.summary li{color:#758178}
+.summary small{color:#929c93}
+.plan-source{color:#89948b!important}
+.knowledge-grid{gap:15px}
+.knowledge-card{padding:20px}
+.kb-top{color:#718d73}
+.kb-id{border-color:#e1e8de;background:#f1f4ef;color:#66816a}
+.knowledge-card h3{font:700 15px "Manrope",sans-serif;color:#38463b}
+.knowledge-card p{color:#77837a}
+.grounded{color:#5d8262}
+.kb-actions{color:#89948b}
+.source-badge{border-color:#e1e8de}
+.source-badge.custom{color:#4c7255;border-color:#dce8dc;background:#eff5ee}
+.source-badge.built-in{color:#71866d;border-color:#e5e9df;background:#f4f5ef}
+.icon-button{color:#89948a}
+.icon-button:hover{color:#a65f59;border-color:#f0dfdc;background:#faeeec}
+.note{background:#f7f4eb;border-color:#eee6d4;color:#9b7a46}
+.note span{color:#81765d}
+.action-card{padding:21px}
+.action-icon{background:#eaf1e8;color:#5c7c5f;border-radius:13px}
+.action-card h3{font:700 14px "Manrope",sans-serif;color:#3b483e}
+.action-card p{color:#7f8a81}
+.log-row{border-top-color:#edf0eb}
+.log-icon{background:#edf4ed;color:#588264}
+.log-row b{color:#435047}
+.log-row p{color:#7b877e}
+.log-row time{color:#919b92}
+.ticket-row>div:nth-child(2)>small{color:#929c93}
+.empty{color:#718d73}
+.empty>span{border-color:#e5ebe2;background:#f3f6f1;border-radius:13px}
+.empty b{color:#4b5b4d}
+.empty p{color:#879188}
+.overlay{background:#27332a4d;backdrop-filter:blur(8px)}
+.prompt-modal{background:#fff;border-color:#e3e9e0;border-radius:18px;box-shadow:0 24px 80px #3943341c}
+.modal-symbol{background:#eaf1e8;color:#597a5d}
+.modal-head h2{font:700 17px "Manrope",sans-serif;color:#344239}
+.modal-head p{color:#859087}
+.close{border-color:#e4e9e2;background:#fff;color:#78847a}
+.close:hover{background:#f4f6f2;color:#475a4a}
+.prompt-card{border-color:#e6ebe4;background:#fafbf9;border-radius:12px}
+.prompt-card b{color:#57765a}
+.prompt-card button{color:#879288}
+.prompt-card p{color:#738078}
+.toast{background:#f3f8f1;border-color:#d8e7d7;color:#45664b;box-shadow:0 12px 34px #39433416}
+.toast button{color:#728b74}
+.plan-source{font-size:10px!important}
+.plan-generate{margin-top:12px}
+.top-actions .outline{padding:8px 11px}
+@media(max-width:1150px){
+  .sidebar{width:220px}
+  .content{padding:28px 24px 18px}
+  .topbar{padding:0 24px}
+}
+@media(max-width:720px){
+  .shell{flex-direction:column}
+  .sidebar{display:flex;position:sticky;top:0;z-index:6;width:100%;height:auto;min-height:0;flex:0 0 auto;flex-direction:row;align-items:center;gap:4px;overflow-x:auto;scrollbar-width:none;padding:8px 10px;background:#eef1eb;border-right:0;border-bottom:1px solid #e1e7de}
+  .sidebar::-webkit-scrollbar{display:none}
+  .brand{flex:0 0 auto;gap:8px;padding:0 12px 0 2px;margin-right:4px;border-right:1px solid #dce3da}
+  .brand-icon{width:31px;height:31px;border-radius:10px}
+  .brand-icon svg{width:17px;height:17px}
+  .brand b{font-size:18px}
+  .brand small,.workspace,.nav-label,.side-bottom{display:none}
+  .sidebar>.nav{flex:0 0 auto;width:auto;gap:7px;margin:0;padding:9px 10px;white-space:nowrap;font-size:10px}
+  .sidebar>.nav svg{width:14px;height:14px}
+  .sidebar>.nav.selected{box-shadow:none}
+  .nav-count,.tag-new{font-size:8px}
+  .main{width:100%;min-width:0;flex:1}
+  .topbar{position:relative;height:54px;padding:0 13px;background:#f8f9f6}
+  .top-actions .connection{display:none}
+  .content{padding:22px 14px 15px}
+  .hero h1,.section-heading h1{font-size:28px}
+  .hero,.section-heading{gap:14px}
+  .hero>.primary{width:100%}
+  .metric{border-radius:13px}
+  .bottom-grid,.knowledge-grid{grid-template-columns:1fr}
+  .chat-layout{min-height:0}
+  .chat-panel{min-height:66vh}
+  .chat-messages{max-height:46vh;min-height:260px}
+  .chat-aside{padding:16px}
+  .footer{gap:9px}
+}
