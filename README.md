@@ -1,61 +1,40 @@
-# Mitra | Customer Care Studio
+# Mitra — AI Customer Support Dashboard
 
-Mitra is a calmer, context-aware customer care studio that turns complex conversations into grounded answers and clear next steps. The full-stack workspace pairs an empathetic customer chat with a live agent dashboard, support guide ingestion, structured conversation analytics, and safe simulated actions.
+Mitra is a customer-support demo that pairs an empathetic, knowledge-grounded chat assistant with a live agent dashboard. It classifies conversation signals, summarizes cases, and suggests safe next steps for support teams.
 
-## Included features
+> **Demo status:** Chats, tickets, uploaded guides, and actions are stored in memory and reset when the backend restarts. Refunds and discounts are simulations only.
 
-- Dual interface: end-user support chat + admin monitoring dashboard
-- Adaptive empathetic response style based on detected sentiment
-- Clarifying questions and safe troubleshooting steps
-- Demo knowledge base with context retrieval and article references
-- Upload approved `.txt` and `.md` support guides (up to 20 KB) for live context retrieval
-- Structured sentiment, intent, category, key entities, urgency, and severity score
-- Conversation summaries, missing-information list, and suggested action plan
-- One-click action-plan generation from the full conversation, with an optional configured LLM and local fallback
-- WebSocket updates from the chat flow to the admin monitor
-- Simulated escalation ticket, refund request, and discount-code actions
-- Dedicated escalation ticket queue linked back to the source conversation
-- Separated prompt strategy templates: chatbot persona, classifier, summary/ticket generator, and action planner
-- Basic redaction for email-like strings, long payment-card-like numbers, and password/OTP patterns
-- Responsive React + Vite + Tailwind CSS interface with Lucide icons
-- FastAPI endpoints and interactive API docs
+## Features
+
+- Customer-facing support chat and live agent monitoring dashboard
+- Knowledge-grounded troubleshooting using built-in support articles and uploaded `.txt`/`.md` guides
+- Conversation classification for sentiment, intent, category, urgency, key entities, and severity
+- Case summaries, missing-information indicators, and suggested action plans
+- Optional Featherless AI integration for chat responses and generated action plans; local rules are used when no API key is configured
+- Live dashboard updates over WebSockets
+- Demo ticket queue and simulated ticket, refund-request, and discount actions
+- Basic redaction of common email, payment-card-like, password, and OTP patterns
+- Responsive React interface
 
 ## Tech stack
 
-- Frontend: React, Vite, Tailwind CSS, Lucide React
-- Backend: FastAPI, Pydantic, WebSockets
-- Default analysis: deterministic local rules; optional OpenAI-compatible LLM endpoint via backend environment variables
+- **Frontend:** React, Vite, CSS, Lucide React
+- **Backend:** Python, FastAPI, Pydantic, HTTPX, WebSockets
+- **AI:** Featherless AI through its OpenAI-compatible chat-completions API (optional)
 
-## Project structure
+## Requirements
 
-```text
-Mitra_Customer_Care_Studio/
-├── backend/
-│   ├── app/
-│   │   ├── __init__.py
-│   │   └── main.py
-│   ├── .env.example
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── App.jsx
-│   │   ├── index.css
-│   │   ├── styles.css
-│   │   └── main.jsx
-│   ├── index.html
-│   ├── package.json
-│   ├── postcss.config.js
-│   ├── tailwind.config.js
-│   └── vite.config.js
-├── .gitignore
-└── README.md
-```
+- Python 3.10 or later
+- Node.js 18 or later and npm
+- Optional: a Featherless API key to enable external AI responses
 
-## Run on Windows 10/11
+## Run locally
 
-### 1. Backend
+Clone the repository and open two PowerShell terminals at the project root.
 
-Open PowerShell in the extracted project folder:
+### 1. Start the backend
+
+In the first terminal:
 
 ```powershell
 cd backend
@@ -64,86 +43,105 @@ py -m venv .venv
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 Copy-Item .env.example .env
-# Add your Featherless API key to AI_API_KEY in backend/.env
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-If PowerShell blocks activation, run the venv executable directly:
+The backend starts in local-rules mode until you add a Featherless API key. To enable Featherless, stop the backend, open `backend/.env`, and set `AI_API_KEY` to your key. Restart the backend after changing environment settings.
+
+If PowerShell blocks virtual-environment activation, use its Python executable directly:
 
 ```powershell
+cd backend
+py -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+Copy-Item .env.example .env
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-### 2. Frontend
+Then add your key to `backend/.env` and restart Uvicorn to enable Featherless.
 
-Open a second terminal at the project root:
+### 2. Start the frontend
+
+In the second terminal, from the project root:
 
 ```powershell
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
-Open the Vite URL, normally <http://localhost:5173>.
+Open <http://localhost:5173>.
 
-### 3. Verify
+## Featherless configuration
 
-- Health: <http://127.0.0.1:8000/api/health>
-- Knowledge articles: <http://127.0.0.1:8000/api/knowledge>
-- Interactive backend docs: <http://127.0.0.1:8000/docs>
-- Admin WebSocket: `ws://127.0.0.1:8000/ws/admin`
+The example configuration in `backend/.env.example` sets:
 
-Start a chat in **Support chat**. The conversation should then appear in **Live monitor** and the overview feed.
+```dotenv
+AI_PROVIDER=featherless
+AI_API_BASE_URL=https://api.featherless.ai/v1
+AI_API_KEY=
+AI_MODEL=meta-llama/Meta-Llama-3.1-8B-Instruct
+```
 
-## API endpoints
+Copy this file to `backend/.env` and add your API key to `AI_API_KEY`. Choose a model available to your Featherless account by changing `AI_MODEL` if needed. Keep the key in the backend environment only; never put it in frontend code or commit the `.env` file. The `.env` file is ignored by Git.
+
+Check the backend health endpoint at <http://127.0.0.1:8000/api/health>. It reports the configured provider and whether external AI credentials are present. If Featherless is unavailable or not configured, the application falls back to its local rules.
+
+## API
+
+Interactive API documentation is available at <http://127.0.0.1:8000/docs>.
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `/` | Service metadata |
-| GET | `/api/health` | Health check |
-| GET | `/api/knowledge` | Built-in and uploaded knowledge articles |
-| POST | `/api/knowledge` | Add a redacted text/Markdown knowledge article |
+| GET | `/` | Service name and status |
+| GET | `/api/health` | Health and AI configuration status |
+| GET | `/api/knowledge` | List built-in and uploaded support articles |
+| POST | `/api/knowledge` | Add a support article |
 | DELETE | `/api/knowledge/{article_id}` | Remove an uploaded article |
-| GET | `/api/sessions` | Conversation analytics and transcript |
-| POST | `/api/sessions/{session_id}/action-plan` | Generate a suggested plan from the full conversation |
-| POST | `/api/chat` | Add a user message and generate a grounded reply |
+| GET | `/api/sessions` | List conversation summaries and transcripts |
+| POST | `/api/chat` | Send a chat message and receive a support response |
+| POST | `/api/sessions/{session_id}/action-plan` | Generate or refresh an action plan |
 | POST | `/api/actions` | Simulate a ticket, refund request, or discount |
-| GET | `/api/tickets` | List demo escalation tickets |
+| GET | `/api/tickets` | List demo tickets |
 | GET | `/api/actions` | List simulated actions |
-| WebSocket | `/ws/admin` | Live conversation/action events |
+| WebSocket | `/ws/admin` | Receive live dashboard events |
 
-## Prompt engineering strategy
+Prompt templates are maintained inside the backend and are not exposed through a public prompt-inspection endpoint.
 
-The backend exposes four separated prompt templates to demonstrate the intended architecture:
+## Run backend tests
 
-1. **Chatbot Persona Prompt** — empathy, clarification, knowledge grounding, safe step-by-step guidance.
-2. **Sentiment & Intent Classifier Prompt** — structured labels, urgency, entities, and uncertainty handling.
-3. **Summary & Ticket Generator Prompt** — root-cause hypothesis, confirmed facts, missing information, and escalation reason.
-4. **Action Plan Prompt** — safe next steps, prerequisites, and human verification.
-
-This ZIP works out of the box with a deterministic local engine. To enable Featherless AI, add your Featherless API key to `AI_API_KEY` in `backend/.env`. The example configuration uses `https://api.featherless.ai/v1` and `meta-llama/Meta-Llama-3.1-8B-Instruct`; select a model available to your Featherless account by changing `AI_MODEL` if needed. The key is only read by the backend and must never be added to frontend code. Chat replies use the persona, classifier, and grounding instructions. Suggested plans use the separated summary and action-plan prompts when Featherless is configured, with a local context-aware plan as fallback. Review recommendations and verify account-specific facts before taking real-world action.
-
-## Privacy and safety notes
-
-- The demo redacts common email strings, long card-like number sequences, and simple password/OTP patterns from user text before storing the chat message.
-- Redaction is a basic prototype safeguard, not comprehensive DLP. Do not enter real sensitive customer data.
-- Knowledge articles are simulated examples. Uploaded TXT/Markdown guidance is redacted and stored in memory for retrieval; account-specific, payment, refund, and order details must be verified by an authorized human/system.
-- Refunds and discount codes are simulations only. No money is moved, no code is applied, and no external system is contacted.
-- The demo uses in-memory storage. Conversations and uploaded knowledge reset when the backend restarts.
-- No authentication, authorization, persistent database, rate limiting, or production-grade audit logging is included.
-
-## Automated tests
-
-From the `backend` folder, install dependencies and run:
+From the `backend` directory with its virtual environment activated:
 
 ```powershell
 python -m unittest discover -s tests -v
 ```
 
-## Suggested next steps
+## Privacy and limitations
 
-- Add an actual LLM provider adapter and run prompt-injection / hallucination evaluations.
-- Add authenticated agent roles and durable database storage.
-- Ingest approved PDFs/FAQs and evaluate retrieval quality.
-- Expand evaluation coverage, audit logging, rate limits, deployment configuration, and production-grade privacy controls.
+- This is a prototype, not a production customer-support system. Do not enter real customer secrets or sensitive payment data.
+- Redaction uses basic patterns and is not comprehensive data-loss prevention.
+- Conversations, tickets, actions, and uploaded knowledge are held in memory and are lost when the backend restarts.
+- No authentication, authorization, persistent database, rate limiting, or production audit logging is included.
+- Demo actions do not move money, apply discounts, or contact external systems. A human must verify account-specific facts and any suggested action.
+
+## Project structure
+
+```text
+├── backend/
+│   ├── app/
+│   │   └── main.py
+│   ├── tests/
+│   │   └── test_main.py
+│   ├── .env.example
+│   └── requirements.txt
+├── docs/
+│   └── HACKATHON_CHECKLIST.md
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx
+│   │   ├── theme.css
+│   │   └── ...
+│   ├── index.html
+│   └── package.json
+└── README.md
+```
