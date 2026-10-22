@@ -87,6 +87,25 @@ Copy this file to `backend/.env` and add your API key to `AI_API_KEY`. Choose a 
 
 Check the backend health endpoint at <http://127.0.0.1:8000/api/health>. It reports the configured provider and whether external AI credentials are present. If Featherless is unavailable or not configured, the application falls back to its local rules.
 
+## Deployment environment variables
+
+For the deployed Vercel frontend, configure these variables in the Vercel project settings, replacing the hostname if your Render service uses another URL:
+
+```dotenv
+VITE_API_BASE=https://mitra-ai-customer-support-dashboard.onrender.com
+VITE_WS_URL=wss://mitra-ai-customer-support-dashboard.onrender.com/ws/admin
+```
+
+Do not add a trailing slash to `VITE_API_BASE`. The frontend also removes trailing slashes automatically to avoid malformed `//api/...` requests.
+
+In Render, set `FRONTEND_ORIGINS` to include the exact deployed Vercel origin:
+
+```dotenv
+FRONTEND_ORIGINS=https://mitra-ai-customer-support-dashboard.vercel.app
+```
+
+If you use a different Vercel domain, use that exact origin instead. Redeploy the frontend after changing Vercel variables and restart/redeploy the backend after changing Render variables.
+
 ## API
 
 Interactive API documentation is available at <http://127.0.0.1:8000/docs>.

@@ -3,12 +3,14 @@ import os
 import sys
 import unittest
 import asyncio
+import httpx
 from unittest.mock import patch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from app.main import (
     PROMPT_TEMPLATES,
     add_knowledge_article,
+    app,
     classify,
     generate_action_plan,
     health,
@@ -124,6 +126,26 @@ class NEXORATests(unittest.TestCase):
         self.assertEqual(result["configured_provider"], "featherless")
         self.assertEqual(result["analysis_engine"], "local-rules")
         self.assertFalse(result["external_ai_configured"])
+
+    def test_deployed_vercel_origin_passes_cors_preflight(self):
+        async def send_preflight():
+            transport = httpx.ASGITransport(app=app)
+            async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+                return await client.options(
+                    "/api/chat",
+                    headers={
+                        "Origin": "https://mitra-ai-customer-support-dashboard.vercel.app",
+                        "Access-Control-Request-Method": "POST",
+                        "Access-Control-Request-Headers": "content-type",
+                    },
+                )
+
+        response = asyncio.run(send_preflight())
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.headers["access-control-allow-origin"],
+            "https://mitra-ai-customer-support-dashboard.vercel.app",
+        )
 
     def test_uploaded_knowledge_is_retrievable(self):
         article = {

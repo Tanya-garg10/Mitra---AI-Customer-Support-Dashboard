@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Activity, AlertTriangle, ArrowUpRight, Bot, Check, CheckCircle2, ChevronRight, CircleHelp, Clock3, FileText, Headphones, LayoutDashboard, LifeBuoy, MessageCircle, MessageSquareText, Plus, Radio, RefreshCw, Search, Send, ShieldCheck, Sparkles, Ticket, Trash2, Upload, Users, X, Zap } from "lucide-react";
 
-const API = import.meta.env.VITE_API_BASE || "http://localhost:8000";
-const WS = import.meta.env.VITE_WS_URL || "ws://localhost:8000/ws/admin";
+const API = (import.meta.env.VITE_API_BASE || "http://localhost:8000").trim().replace(/\/+$/, "");
+const WS = (import.meta.env.VITE_WS_URL || "ws://localhost:8000/ws/admin").trim().replace(/\/+$/, "");
 const makeId = () => `web-${Math.random().toString(36).slice(2, 9)}`;
 const starter = [
   {role:"assistant",content:"Hi, I’m Mitra. Tell me what happened, and we’ll figure out the next step together. Please don’t share passwords, verification codes, or payment details."}

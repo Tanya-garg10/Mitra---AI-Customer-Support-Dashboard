@@ -28,8 +28,11 @@ app = FastAPI(title=APP_NAME, version=APP_VERSION)
 
 origins = [x.strip() for x in os.getenv(
     "FRONTEND_ORIGINS",
-    "http://localhost:5173,http://127.0.0.1:5173"
+    "http://localhost:5173,http://127.0.0.1:5173,https://mitra-ai-customer-support-dashboard.vercel.app"
 ).split(",") if x.strip()]
+deployed_frontend_origin = "https://mitra-ai-customer-support-dashboard.vercel.app"
+if deployed_frontend_origin not in origins:
+    origins.append(deployed_frontend_origin)
 app.add_middleware(
     CORSMiddleware, allow_origins=origins, allow_credentials=True,
     allow_methods=["*"], allow_headers=["*"]
