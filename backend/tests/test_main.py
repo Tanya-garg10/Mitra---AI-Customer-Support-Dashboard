@@ -156,6 +156,37 @@ class NEXORATests(unittest.TestCase):
         )
         self.assertEqual(result["provider"], "featherless")
 
+    def test_featherless_error_is_reported_in_health(self):
+        class MockResponse:
+            def raise_for_status(self):
+                request = httpx.Request("POST", "https://api.featherless.ai/v1/chat/completions")
+                response = httpx.Response(401, request=request)
+                raise httpx.HTTPStatusError("unauthorized", request=request, response=response)
+
+        class MockAsyncClient:
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *_):
+                pass
+
+            async def post(self, *_args, **_kwargs):
+                return MockResponse()
+
+        with (
+            patch("app.main.AI_API_BASE_URL", "https://api.featherless.ai/v1"),
+            patch("app.main.AI_API_KEY", "test-key"),
+            patch("app.main.AI_MODEL", "test/model"),
+            patch("app.main.AI_PROVIDER", "featherless"),
+            patch("app.main.AI_LAST_ERROR", None),
+            patch("app.main.httpx.AsyncClient", return_value=MockAsyncClient()),
+        ):
+            result = asyncio.run(try_llm_reply("Need help", [], []))
+            health_result = asyncio.run(health())
+
+        self.assertIsNone(result)
+        self.assertEqual(health_result["external_ai_last_error"], "Featherless returned HTTP 401")
+
     def test_health_reports_featherless_when_configured(self):
         with (
             patch("app.main.AI_API_BASE_URL", "https://api.featherless.ai/v1"),

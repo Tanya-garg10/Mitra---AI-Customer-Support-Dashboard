@@ -24,6 +24,7 @@ AI_PROVIDER = os.getenv("AI_PROVIDER", "featherless").strip().lower()
 AI_API_BASE_URL = os.getenv("AI_API_BASE_URL", "").rstrip("/")
 AI_API_KEY = os.getenv("AI_API_KEY", "")
 AI_MODEL = os.getenv("AI_MODEL", "")
+AI_LAST_ERROR: str | None = None
 app = FastAPI(title=APP_NAME, version=APP_VERSION)
 
 origins = [x.strip() for x in os.getenv(
@@ -250,6 +251,7 @@ Do not state that a simulated refund, discount, or ticket action has succeeded i
 
 async def try_llm_reply(message: str, context: list[dict[str, str]], history: list[dict[str, str]]) -> dict[str, Any] | None:
     """Optional OpenAI-compatible provider. Without configured env vars, local mode is used."""
+    global AI_LAST_ERROR
     if not (AI_API_BASE_URL and AI_API_KEY and AI_MODEL):
         return None
     endpoint = AI_API_BASE_URL
@@ -278,10 +280,12 @@ async def try_llm_reply(message: str, context: list[dict[str, str]], history: li
             parsed = parse_json_object(content)
             reply = str(parsed.get("reply", "") if parsed else content).strip()
             if not reply:
+                AI_LAST_ERROR = "Featherless returned an empty response"
                 return None
             steps = parsed.get("steps", []) if parsed else []
             if not isinstance(steps, list):
                 steps = []
+            AI_LAST_ERROR = None
             return {
                 "reply": reply,
                 "steps": [str(x)[:500] for x in steps[:8]],
@@ -289,6 +293,14 @@ async def try_llm_reply(message: str, context: list[dict[str, str]], history: li
                 "provider": AI_PROVIDER,
             }
     except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as exc:
+        if isinstance(exc, httpx.HTTPStatusError):
+            AI_LAST_ERROR = f"Featherless returned HTTP {exc.response.status_code}"
+        elif isinstance(exc, httpx.TimeoutException):
+            AI_LAST_ERROR = "Featherless request timed out"
+        elif isinstance(exc, httpx.HTTPError):
+            AI_LAST_ERROR = f"Featherless request failed ({type(exc).__name__})"
+        else:
+            AI_LAST_ERROR = f"Featherless returned an invalid response ({type(exc).__name__})"
         logger.warning("Configured AI provider failed; using local engine: %s", exc)
         return None
 
@@ -319,6 +331,8 @@ async def build_reply(message: str, context: list[dict[str, str]], labels: dict[
     result = await try_llm_reply(message, context, history)
     if result is None:
         result = build_local_reply(message, context, labels, history)
+        if AI_API_BASE_URL and AI_API_KEY and AI_MODEL and AI_LAST_ERROR:
+            result["provider_notice"] = "Featherless could not generate this reply. The response uses local support rules instead."
     result["context_articles"] = [{"id": x["id"], "title": x["title"]} for x in context]
     result["guardrail_note"] = "Guidance is grounded in the listed demo knowledge articles; verify account-specific facts with a human agent."
     return result
@@ -461,6 +475,7 @@ async def health():
         "configured_provider": AI_PROVIDER,
         "analysis_engine": AI_PROVIDER if (AI_API_BASE_URL and AI_API_KEY and AI_MODEL) else "local-rules",
         "external_ai_configured": bool(AI_API_BASE_URL and AI_API_KEY and AI_MODEL),
+        "external_ai_last_error": AI_LAST_ERROR,
         "knowledge_articles": len(KNOWLEDGE_BASE) + len(uploaded_knowledge),
     }
 

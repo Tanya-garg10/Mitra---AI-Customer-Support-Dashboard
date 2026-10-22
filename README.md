@@ -1,6 +1,8 @@
 # Mitra — AI Customer Support Dashboard
 
-Mitra is a customer-support demo that pairs an empathetic, knowledge-grounded chat assistant with a live agent dashboard. It classifies conversation signals, summarizes cases, and suggests safe next steps for support teams.
+Mitra is an AI-powered customer support and troubleshooting dashboard that turns complex customer conversations into grounded answers and actionable agent insights. Customers get empathetic, step-by-step help informed by approved support guides, while agents can monitor live conversations, assess sentiment and urgency, review case summaries, and prepare safe escalations.
+
+**Project description:** Mitra combines a context-aware AI support assistant with a real-time agent workspace. It uses knowledge-grounded chat, conversation classification, severity scoring, live monitoring, and suggested resolution plans to help support teams resolve issues faster—while keeping refunds and other operational actions safely simulated.
 
 > **Demo status:** Chats, tickets, uploaded guides, and actions are stored in memory and reset when the backend restarts. Refunds and discounts are simulations only.
 
@@ -20,7 +22,21 @@ Mitra is a customer-support demo that pairs an empathetic, knowledge-grounded ch
 
 - **Frontend:** React, Vite, CSS, Lucide React
 - **Backend:** Python, FastAPI, Pydantic, HTTPX, WebSockets
-- **AI:** Featherless AI through its OpenAI-compatible chat-completions API (optional)
+- **AI inference:** Featherless AI API using the OpenAI-compatible chat-completions interface and a configurable hosted language model (default: `meta-llama/Meta-Llama-3.1-8B-Instruct`)
+- **Prompt engineering:** Separate assistant-persona, safety and knowledge-grounding, sentiment/intent classification, case-summary, and action-planning instructions
+
+## AI tools and prompt-engineering approach
+
+- **Featherless AI API** sends grounded chat and action-plan requests to the configured hosted model. The API key remains on the backend.
+- **FastAPI and HTTPX** connect the dashboard backend to the model API; no LangChain or frontend AI SDK is required.
+- **Local rules fallback** keeps the demo usable when the API is not configured. If a configured Featherless request fails, the API health response and chat notice report that the response fell back to local rules.
+- **Persona prompt:** guides Mitra to be empathetic, concise, and clear, and to ask a clarifying question when needed.
+- **Grounding prompt:** supplies retrieved approved support articles and recent conversation context; instructs the model not to invent account, order, delivery, refund, or policy facts.
+- **Classifier prompt:** asks for evidence-based sentiment, intent, urgency, category, and entities for the agent dashboard.
+- **Summary and action-plan prompts:** distinguish confirmed information from hypotheses, surface missing details, and recommend safe next steps with human verification.
+- **Safety instructions:** prohibit asking for passwords, one-time codes, or full payment-card data, and state that demo refunds, tickets, and discounts are simulations.
+
+The prompts are maintained in the backend and are not exposed through a public prompt-inspection endpoint.
 
 ## Requirements
 
