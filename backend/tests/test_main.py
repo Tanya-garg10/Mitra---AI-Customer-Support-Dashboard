@@ -15,7 +15,9 @@ from app.main import (
     generate_action_plan,
     health,
     make_llm_messages,
+    parse_json_object,
     redact_sensitive,
+    retrieve_chat_context,
     retrieve_context,
     try_llm_reply,
     uploaded_knowledge,
@@ -40,6 +42,23 @@ class NEXORATests(unittest.TestCase):
         result = retrieve_context("password reset link expired")
         self.assertTrue(result)
         self.assertEqual(result[0]["id"], "KB-001")
+
+    def test_chat_context_prefers_current_question_and_uses_history_for_followups(self):
+        history = [
+            {"role": "user", "content": "My password reset link expired."},
+            {"role": "assistant", "content": "Request a new password reset link."},
+        ]
+        current_issue = retrieve_chat_context("The CSV export fails.", history)
+        self.assertEqual([article["id"] for article in current_issue], ["KB-004"])
+
+        follow_up = retrieve_chat_context("It is still broken.", history + [
+            {"role": "user", "content": "The CSV export fails."},
+        ])
+        self.assertEqual([article["id"] for article in follow_up], ["KB-004"])
+
+    def test_json_parser_accepts_markdown_fenced_object(self):
+        parsed = parse_json_object('```json\n{"reply":"Try again."}\n```')
+        self.assertEqual(parsed, {"reply": "Try again."})
 
     def test_sensitive_text_redaction(self):
         result = redact_sensitive("Email me at test@example.com; password: abc123")
@@ -86,6 +105,7 @@ class NEXORATests(unittest.TestCase):
                 captured["endpoint"] = endpoint
                 captured["headers"] = kwargs["headers"]
                 captured["model"] = kwargs["json"]["model"]
+                captured["json_mode"] = "response_format" in kwargs["json"]
                 return MockResponse()
 
         with (
@@ -100,6 +120,40 @@ class NEXORATests(unittest.TestCase):
         self.assertEqual(captured["endpoint"], "https://api.featherless.ai/v1/chat/completions")
         self.assertEqual(captured["headers"]["Authorization"], "Bearer test-key")
         self.assertEqual(captured["model"], "test/model")
+        self.assertFalse(captured["json_mode"])
+        self.assertEqual(result["provider"], "featherless")
+
+    def test_featherless_plain_text_response_is_used(self):
+        class MockResponse:
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return {"choices": [{"message": {"content": "Try exporting again after clearing the filters."}}]}
+
+        class MockAsyncClient:
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *_):
+                pass
+
+            async def post(self, *_args, **_kwargs):
+                return MockResponse()
+
+        with (
+            patch("app.main.AI_API_BASE_URL", "https://api.featherless.ai/v1"),
+            patch("app.main.AI_API_KEY", "test-key"),
+            patch("app.main.AI_MODEL", "test/model"),
+            patch("app.main.AI_PROVIDER", "featherless"),
+            patch("app.main.httpx.AsyncClient", return_value=MockAsyncClient()),
+        ):
+            result = asyncio.run(try_llm_reply("Export fails", [], []))
+
+        self.assertEqual(
+            result["reply"],
+            "Try exporting again after clearing the filters.",
+        )
         self.assertEqual(result["provider"], "featherless")
 
     def test_health_reports_featherless_when_configured(self):
@@ -131,21 +185,44 @@ class NEXORATests(unittest.TestCase):
         async def send_preflight():
             transport = httpx.ASGITransport(app=app)
             async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+                responses = []
+                for origin in (
+                    "https://mitra-ai-customer-support-dashboard.vercel.app",
+                    "https://mitra-ai-customer-support-dashboard-git-main-tanya-382b.vercel.app",
+                ):
+                    responses.append(await client.options(
+                        "/api/chat",
+                        headers={
+                            "Origin": origin,
+                            "Access-Control-Request-Method": "POST",
+                            "Access-Control-Request-Headers": "content-type",
+                        },
+                    ))
+                return responses
+
+        responses = asyncio.run(send_preflight())
+        for response in responses:
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(
+                response.headers["access-control-allow-origin"],
+                response.request.headers["origin"],
+            )
+
+    def test_unrelated_vercel_origin_is_not_allowed(self):
+        async def send_preflight():
+            transport = httpx.ASGITransport(app=app)
+            async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
                 return await client.options(
                     "/api/chat",
                     headers={
-                        "Origin": "https://mitra-ai-customer-support-dashboard.vercel.app",
+                        "Origin": "https://some-other-project.vercel.app",
                         "Access-Control-Request-Method": "POST",
                         "Access-Control-Request-Headers": "content-type",
                     },
                 )
 
         response = asyncio.run(send_preflight())
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            response.headers["access-control-allow-origin"],
-            "https://mitra-ai-customer-support-dashboard.vercel.app",
-        )
+        self.assertEqual(response.status_code, 400)
 
     def test_uploaded_knowledge_is_retrievable(self):
         article = {

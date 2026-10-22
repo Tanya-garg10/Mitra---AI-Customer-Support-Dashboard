@@ -34,7 +34,10 @@ deployed_frontend_origin = "https://mitra-ai-customer-support-dashboard.vercel.a
 if deployed_frontend_origin not in origins:
     origins.append(deployed_frontend_origin)
 app.add_middleware(
-    CORSMiddleware, allow_origins=origins, allow_credentials=True,
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_origin_regex=r"https://mitra-ai-customer-support-dashboard(?:-[a-z0-9-]+)?\.vercel\.app",
+    allow_credentials=True,
     allow_methods=["*"], allow_headers=["*"]
 )
 
@@ -193,6 +196,28 @@ def retrieve_context(text: str) -> list[dict[str, str]]:
     ]
 
 
+def retrieve_chat_context(message: str, history: list[dict[str, str]]) -> list[dict[str, str]]:
+    context = retrieve_context(message)
+    if context:
+        return context
+    previous_user_messages = [item["content"] for item in history if item["role"] == "user"]
+    return retrieve_context(previous_user_messages[-1]) if previous_user_messages else []
+
+
+def parse_json_object(content: str) -> dict[str, Any] | None:
+    try:
+        parsed = json.loads(content)
+    except json.JSONDecodeError:
+        start, end = content.find("{"), content.rfind("}")
+        if start < 0 or end <= start:
+            return None
+        try:
+            parsed = json.loads(content[start:end + 1])
+        except json.JSONDecodeError:
+            return None
+    return parsed if isinstance(parsed, dict) else None
+
+
 
 def make_llm_messages(message: str, context: list[dict[str, str]], history: list[dict[str, str]]) -> list[dict[str, str]]:
     """Build separated prompt-chain messages for an OpenAI-compatible chat-completions endpoint."""
@@ -238,27 +263,32 @@ async def try_llm_reply(message: str, context: list[dict[str, str]], history: li
                 json={
                     "model": AI_MODEL,
                     "temperature": 0.25,
-                    "response_format": {"type": "json_object"},
                     "messages": make_llm_messages(message, context, history),
                 },
             )
             response.raise_for_status()
             body = response.json()
             content = body["choices"][0]["message"]["content"]
-            parsed = json.loads(content)
-            reply = str(parsed.get("reply", "")).strip()
+            if isinstance(content, list):
+                content = "".join(
+                    item.get("text", "") for item in content if isinstance(item, dict)
+                )
+            if not isinstance(content, str):
+                return None
+            parsed = parse_json_object(content)
+            reply = str(parsed.get("reply", "") if parsed else content).strip()
             if not reply:
                 return None
-            steps = parsed.get("steps", [])
+            steps = parsed.get("steps", []) if parsed else []
             if not isinstance(steps, list):
                 steps = []
             return {
                 "reply": reply,
                 "steps": [str(x)[:500] for x in steps[:8]],
-                "needs_clarification": bool(parsed.get("needs_clarification", False)),
+                "needs_clarification": bool(parsed.get("needs_clarification", False)) if parsed else False,
                 "provider": AI_PROVIDER,
             }
-    except Exception as exc:
+    except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as exc:
         logger.warning("Configured AI provider failed; using local engine: %s", exc)
         return None
 
@@ -376,7 +406,6 @@ All ticket, refund, and discount actions are simulations."""
                 json={
                     "model": AI_MODEL,
                     "temperature": 0.2,
-                    "response_format": {"type": "json_object"},
                     "messages": [
                         {"role": "system", "content": PROMPT_TEMPLATES["summary_ticket_generator"]},
                         {"role": "system", "content": PROMPT_TEMPLATES["action_plan"]},
@@ -386,7 +415,15 @@ All ticket, refund, and discount actions are simulations."""
             )
             response.raise_for_status()
             content = response.json()["choices"][0]["message"]["content"]
-            generated = json.loads(content)
+            if isinstance(content, list):
+                content = "".join(
+                    item.get("text", "") for item in content if isinstance(item, dict)
+                )
+            if not isinstance(content, str):
+                return analysis
+            generated = parse_json_object(content)
+            if generated is None:
+                return analysis
             plan = generated.get("action_plan")
             if isinstance(plan, list) and all(isinstance(step, str) for step in plan):
                 clean_plan = [step.strip()[:500] for step in plan[:8] if step.strip()]
@@ -507,7 +544,7 @@ async def chat(payload: ChatMessage):
     safe_message = redact_sensitive(payload.message.strip())
     session["messages"].append({"role": "user", "content": safe_message, "timestamp": now_iso()})
     labels = classify(" ".join(m["content"] for m in session["messages"] if m["role"] == "user"))
-    context = retrieve_context(" ".join(m["content"] for m in session["messages"] if m["role"] == "user"))
+    context = retrieve_chat_context(safe_message, session["messages"][:-1])
     result = await build_reply(safe_message, context, labels, session["messages"])
     session["messages"].append({"role": "assistant", "content": result["reply"], "timestamp": now_iso()})
     session["updated_at"] = now_iso()

@@ -104,7 +104,7 @@ In Render, set `FRONTEND_ORIGINS` to include the exact deployed Vercel origin:
 FRONTEND_ORIGINS=https://mitra-ai-customer-support-dashboard.vercel.app
 ```
 
-If you use a different Vercel domain, use that exact origin instead. Redeploy the frontend after changing Vercel variables and restart/redeploy the backend after changing Render variables.
+The project production domain and its Vercel preview deployment URLs are allowed by the backend. Add any custom Vercel domain you use to `FRONTEND_ORIGINS` as well. Redeploy the frontend after changing Vercel variables and restart/redeploy the backend after changing Render variables.
 
 ## API
 
